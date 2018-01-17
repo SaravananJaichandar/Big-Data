@@ -1,0 +1,335 @@
+A. Create Database
+------------------
+create database retail;
+
+B. Select Database
+------------------
+use retail;
+
+C. Create table for storing transactional records
+-------------------------------------------------
+create table txnrecords(txnno INT, txndate STRING, custno INT, amount DOUBLE, 
+category STRING, product STRING, city STRING, state STRING, spendby STRING)
+row format delimited
+fields terminated by ','
+stored as textfile;
+
+select * from txnrecords where category='Puzzles'; --> whether there will be a Map for this query? 
+
+create external table externaltxnrecords(txnno INT, txndate STRING, custno INT, amount DOUBLE, 
+category STRING, product STRING, city STRING, state STRING, spendby STRING)
+row format delimited
+fields terminated by ','
+stored as textfile location '/hive';
+
+
+D. Load the data into the table [ From Linux client and not HDFS]
+-------------------------------
+
+LOAD DATA LOCAL INPATH '/home/training/training_materials/data/txns1.txt' OVERWRITE INTO TABLE txnrecords;
+
+E. Describing metadata or schema of the table
+---------------------------------------------
+describe txnrecords;
+
+F. Counting no of records
+-------------------------
+select count(*) from txnrecords;
+
+G. Counting total spending by category of products
+--------------------------------------------------
+select category, sum(amount) from txnrecords group by category;
+
+H. 10 customers
+--------------------
+select custno, sum(amount) from txnrecords group by custno limit 10;
+
+-- Table A --> 1000 rows and has a column called region and the values of the region [ usa,uk,india].
+
+-- select col1,col2 from A where region='india';
+
+I. Create partitioned table
+---------------------------
+create table txnrecsByCat(txnno INT, txndate STRING, custno INT, amount DOUBLE,
+product STRING, city STRING, state STRING, spendby STRING)
+partitioned by (category STRING)
+clustered by (state) INTO 10 buckets
+row format delimited
+fields terminated by ','
+stored as textfile;
+
+Bucketing formula--> 
+(hash of the bucketed column) % no of buckets = 
+
+Venkat --> ca1ad34c030ecf7d3690f5cc531d2aad
+Mukesh --> 71bf7cc5964bc4a79f7150d77603ad25
+
+Table Customer -->	Col State [ 10 unique values ]
+			Maharashtra, WestBengal, UttarPradesh, MadhyaPradesh, Kerala
+			Col product [ 15 unique values ] 
+
+	partition the data based on product col --> 15 partitions
+
+	bucketed the data based on State col  in to 7 buckets --> 7 buckets
+
+	a) Will all buckets have some value? 
+	   Ans: May be as it is totally dependent on the value of the hash
+	b) Will one bucket have more than 1 value? 
+	   Ans: Yes
+	c) Is there a guarantee that all similar values [ Maharashtra ]  will always go in one bucket.
+	   Ans: Yes
+
+
+
+
+
+J. Configure Hive to allow partitions
+-------------------------------------
+
+However, a query across all partitions could trigger an enormous MapReduce job if the table data and number of partitions are large. A highly suggested safety measure is putting Hive into strict mode, which prohibits queries of partitioned tables without a WHERE clause that filters on partitions. You can set the mode to nonstrict, as in the following session:
+
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.dynamic.partition=true;
+set hive.enforce.bucketing=true;
+
+K. Load data into partition table
+----------------------------------
+from txnrecords txn INSERT OVERWRITE TABLE txnrecsByCat PARTITION(category)
+select txn.txnno, txn.txndate,txn.custno, txn.amount,txn.product,txn.city,txn.state,
+txn.spendby, txn.category DISTRIBUTE BY category;
+
+Bucketing
+
+SELECT txnno,product,state 
+FROM txnrecsbycat TABLESAMPLE(BUCKET 3 OUT OF 10);
+
+select txnno, product FROM txnrecsbycat TABLESAMPLE(BUCKET 2 OUT OF 10) order by txnno;
+
+
+==========================
+find sales based on age group
+==========================
+
+create table customer(custno string, firstname string, lastname string, age int,profession string)
+row format delimited
+fields terminated by ',';
+
+load data local inpath '/home/training/training_materials/data/custs' into table customer;
+
+create table out1 (custno int,firstname string,age int,profession string,amount double,product string)
+row format delimited                                               fields terminated by ',';   
+
+insert overwrite table out1                                                                           
+select a.custno,a.firstname,a.age,a.profession,b.amount,b.product                                     
+from customer a JOIN txnrecords b ON a.custno = b.custno;     
+
+select * from out1 limit 100;
+
+create table out2 (custno int,firstname string,age int,profession string,amount double,product string, level string)
+row format delimited                                                                                  
+fields terminated by ',';   
+
+insert overwrite table out2
+select * , case
+ when age<30 then 'low'
+ when age>=30 and age < 50 then 'middle'
+ when age>=50 then 'old' 
+ else 'others'
+end
+from out1;
+
+
+ select * from out2 limit 100; 
+
+ describe out2;  
+
+create table out3 (level string, amount double)                                                                                   
+row format delimited
+fields terminated by ',';
+
+insert overwrite table out3  
+ select level,sum(amount) from out2 group by level;
+
+
+==============
+simple join
+==============
+
+****emp.txt
+****swetha,250000,Chennai
+****anamika,200000,Kanyakumari
+****tarun,300000,Pondi
+****anita,250000,Selam
+
+
+****email.txt
+****swetha,swetha@gmail.com
+****tarun,tarun@shivank.in
+****nagesh,nagesh@yahoo.com
+****venkatesh,venki@gmail.com
+
+
+create table employee(name string, salary float,city string)
+row format delimited
+fields terminated by ',';
+
+load data local inpath '/home/training/training_materials/data/emp.txt' into table employee;
+
+select * from employee where name='tarun';
+
+create table mailid (name string, email string)
+row format delimited
+fields terminated by ',';
+
+
+load data local inpath '/home/training/training_materials/data/email.txt' into table mailid;
+
+select a.name,a.city,a.salary,b.email from 
+employee a join mailid b on a.name = b.name;
+
+select a.name,a.city,a.salary,b.email from 
+employee a left outer join mailid b on a.name = b.name;
+
+select a.name,a.city,a.salary,b.email from 
+employee a right outer join mailid b on a.name = b.name;
+
+select a.name,a.city,a.salary,b.email from 
+employee a full outer join mailid b on a.name = b.name;
+
+===============================================
+Custom Mapper Code to manipulate unix timestamp
+===============================================
+
+CREATE TABLE u_data ( userid INT, movieid INT, rating INT, unixtime STRING) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' STORED AS TEXTFILE; 
+
+****1	101	8	1369721454
+****2	102	8	1369821454
+****3	103	8	1369921454
+****4	105	8	1370021454  
+****5	106	9	1370021454
+
+****And load it into the table that was just created:
+
+LOAD DATA LOCAL INPATH '/home/training/training_materials/data/u.data' OVERWRITE INTO TABLE u_data; 
+
+Count the number of rows in table u_data:
+SELECT COUNT(*) FROM u_data; 
+
+****Create weekday_mapper.py:
+
+import sys 
+import datetime 
+for line in sys.stdin: 
+	line = line.strip() 
+	userid, movieid, rating, unixtime = line.split('\t') 
+	weekday = datetime.datetime.fromtimestamp(float(unixtime)).isoweekday() 
+	print '\t'.join([userid, movieid, rating, str(weekday)]) 
+
+CREATE TABLE u_data_new ( 
+	userid INT, 
+	movieid INT, 
+	rating INT, 
+	weekday INT) 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'; 
+
+add FILE weekday_mapper.py; 
+
+****Note that columns will be transformed to string and delimited 
+****by TAB before feeding to the user script, and the standard output 
+****of the user script will be treated as TAB-separated string columns.
+
+****The following command uses the TRANSFORM clause to embed the mapper scripts.
+
+INSERT OVERWRITE TABLE u_data_new 
+SELECT 
+	TRANSFORM (userid, movieid, rating, unixtime) 
+	USING 'python weekday_mapper.py' 
+	AS (userid, movieid, rating, weekday) 
+FROM u_data; 
+
+SELECT weekday, COUNT(*) 
+FROM u_data_new 
+GROUP BY weekday;
+
+INSERT OVERWRITE TABLE u_data 
+SELECT 
+	TRANSFORM (userid, movieid, rating, unixtime) 
+	USING 'python weekday_mapper.py' 
+	AS (userid, movieid, rating, weekday) 
+FROM u_data; 
+
+SELECT weekday, COUNT(*) 
+FROM u_data_new 
+GROUP BY weekday;
+===========
+UDF
+===========
+
+import java.util.Date;
+import java.text.DateFormat;
+import org.apache.hadoop.hive.ql.exec.UDF; 
+import org.apache.hadoop.io.Text;
+public class UnixtimeToDate extends UDF{
+	public Text evaluate(Text text){
+		if(text==null) return null;
+		long timestamp = Long.parseLong(text.toString());
+		return new Text(toDate(timestamp));
+	}
+	private String toDate(long timestamp) {
+		Date date = new Date (timestamp*1000);
+		return DateFormat.getInstance().format(date).toString();
+	}
+}
+
+javac -classpath /usr/lib/hadoop-0.20/hadoop-core-0.20.2-cdh3u0.jar:/usr/lib/hive/lib/hive-exec-0.7.0-cdh3u0.jar UnixtimeToDate.java
+
+****Pack this class file into a jar: 
+$jar -cvf convert.jar UnixtimeToDate.class
+
+****Verify jar using command : 
+$jar -tvf convert.jar
+
+****add this jar in hive prompt
+ADD JAR  convert.jar;
+
+****Then you create your custom function as follows:
+create temporary function userdate as 'UnixtimeToDate';
+
+****one,1386023259550
+****two,1389523259550
+****three,1389523259550
+****four,1389523259550
+
+create table testing(id string,unixtime string)
+row format delimited
+fields terminated by ',';
+
+LOAD DATA LOCAL INPATH '/home/training/training_materials/data/counter' OVERWRITE INTO TABLE testing;
+
+hive> select * from testing;
+****OK
+****one		1386023259550
+****two		1389523259550
+****three	1389523259550
+****four	1389523259550
+
+****Then use function 'userdate' in sql command
+
+select id,userdate(unixtime) from testing;
+
+****OK
+****four	3/28/02 8:12 PM
+****one		4/30/91 1:59 PM
+****two		3/28/02 8:12 PM
+****three	3/28/02 8:12 PM
+
+
+
+
+
+
+
+
+
+
