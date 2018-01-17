@@ -1,0 +1,35 @@
+mysql -D retail_db -u retail_dba -p
+
+show tables;
+
+sqoop import --connect jdbc:mysql://localhost:3306/retail_db --table customers --username retail_dba --password cloudera --target-dir /sqoop_import_dempo --m 1
+
+hdfs dfs -cat /sqoop_import_dempo/part-m-00000 | wc -l
+
+#create table cust_exp like customers;
+#or
+delete from cust_exp;
+
+
+sqoop export --connect jdbc:mysql://localhost:3306/retail_db --table cust_exp --username retail_dba --password cloudera --export-dir /sqoop_import_dempo --m 1
+
+select count(*) from cust_exp;
+
+#drop table cust_exp;
+
+--hive import
+hdfs dfs -rmr /user/hive/warehouse/customers/
+
+sqoop import --connect jdbc:mysql://localhost:3306/retail_db --table customers --username retail_dba --password cloudera --m 1 --hive-import
+
+hdfs dfs -cat /user/hive/warehouse/customers/part-m-00000 |wc -l
+
+drop table cust_Sq_imp;
+
+create table cust_sq_imp(customer_fname string, customer_lname string,
+customer_email string, customer_password string, customer_street string,
+customer_city string, customer_state string, customer_zipcode string) row format delimited fields terminated by ',';
+
+hdfs dfs -rmr customers
+
+sqoop import --connect jdbc:mysql://localhost:3306/retail_db --table customers --username retail_dba --password cloudera --hive-import --hive-database sqoop_import --hive-table cust_sq_imp
