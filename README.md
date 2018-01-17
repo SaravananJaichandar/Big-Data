@@ -23,7 +23,7 @@ The Apache Hadoop software library is a framework that allows for the distribute
 
 **Hadoop Ecosystem**
 
-![alt text](https://github.com/SaravananJaichandar/Big-Data/Hadoopecosystem.jpg)
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Hadoopecosystem.jpg)
 
 **HDFS**
 
