@@ -1,0 +1,28 @@
+myagent.sources = mysrc
+myagent.sinks = mysink
+myagent.channels = mychannel
+
+#source configuration
+myagent.sources.mysrc.type = netcat
+#netcat server
+myagent.sources.mysrc.bind = localhost
+myagent.sources.mysrc.port = 9999
+
+#sink configuration
+myagent.sinks.mysink.type = hdfs
+myagent.sinks.mysink.hdfs.path = hdfs://quickstart.cloudera:8020/flume_demo
+myagent.sinks.mysink.writeFormat = Text
+myagent.sinks.mysink.fileType = DataStream
+
+#channel configuration
+myagent.channels.mychannel.type = memory
+myagent.channels.mychannel.capacity = 1000
+myagent.channels.mychannel.transactionCapacity = 100
+
+#bind the source, sink with channel
+myagent.sources.mysrc.channels = mychannel
+myagent.sinks.mysink.channels = mychannel
+
+flume command to start it.
+flume-ng agent --conf conf --conf-file my_flume_agent.conf --name myagent -Dflume.root.logger=INFO,console
+nc localhost 9999
