@@ -56,3 +56,31 @@ yet Another Resource Negotiator. A framework for job scheduling and cluster reso
  **Oozie**
  
  A high-performance coordination service for distributed applications.
+
+**Apache Spark**
+
+A fast and general compute engine for Hadoop data. Spark provides a simple and expressive programming model that supports a wide range of applications, including ETL, machine learning, stream processing, and graph computation.
+
+**Sqoop**
+
+Apache Sqoop(TM) is a tool designed for efficiently transferring bulk data between Apache Hadoop and structured datastores such as relational databases.
+
+**Flume**
+
+Flume is a distributed, reliable, and available service for efficiently collecting, aggregating, and moving large amounts of log data. It has a simple and flexible architecture based on streaming data flows. It is robust and fault tolerant with tunable reliability mechanisms and many failover and recovery mechanisms. It uses a simple extensible data model that allows for online analytic application.
+
+**Spark SQL**
+
+Spark SQL is Apache Spark's module for working with structured data.
+
+**Spark MLlib**
+
+MLlib is Apache Spark's scalable machine learning library.
+
+**Spark Streaming**
+
+Spark Streaming is an extension of the core Spark API that enables scalable, high-throughput, fault-tolerant stream processing of live data streams. Data can be ingested from many sources like Kafka, Flume, Kinesis, or TCP sockets, and can be processed using complex algorithms expressed with high-level functions like map, reduce, join and window. Finally, processed data can be pushed out to filesystems, databases, and live dashboards. In fact, you can apply Spark’s machine learning and graph processing algorithms on data streams.
+
+**Spark Graphx**
+
+GraphX is Apache Spark's API for graphs and graph-parallel computation.
