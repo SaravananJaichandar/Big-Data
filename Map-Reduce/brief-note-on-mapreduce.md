@@ -19,6 +19,10 @@ There are 3 steps in map reduce:
         a).I/O Operation takes place here.
         b).Sum the values for same keys and produce the output.
         
+        
+![alt text] (https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/mapreducediagram.jpg)        
+
+
 **Additional Step**
 
 **Combiner Approach**:
