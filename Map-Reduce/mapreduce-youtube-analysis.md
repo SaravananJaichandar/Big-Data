@@ -29,3 +29,23 @@ Column 10: Related video ids with the uploaded video.
 For finding the top 5 categories, we should use column 4 for the categories with maximum number of videos uploaded.
 
 **Mapper Code**:
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/categorymapper.jpg) 
+
+**Reducer Code**:
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/categoryreducer.jpg) 
+
+**Result**:
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/categoryresult.jpg) 
+
+2.**Top 10 rated videos**:
+
+For finding the top 10 rated videos on youtube, we should take the video id column and rating on the video column.
+
+**Mapper Code**:
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/mostviewedmapper.jpg) 
+
+**Reducer Code**:
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/mostviewedreducer.jpg) 
+
+**Result**:
+![alt text](https://github.com/SaravananJaichandar/Big-Data/blob/master/Map-Reduce/mostviewedresult.jpg) 
